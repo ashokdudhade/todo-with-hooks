@@ -1,28 +1,57 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
+import React, {useReducer} from 'react';
 import './App.css';
+import ToDoHome from './components/ToDoHome';
+import { TodoProvider } from './providers/todoProvider';
+const initialState = {
+  todoItems: []
+};
 
-class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-      </div>
-    );
+const markItemStateChange = (isComplete, id, state) => {
+  const item = state.todoItems.find(t => t.id === id);
+  if(item){
+    item.isComplete = isComplete;
+    return {
+      ...state, 
+      todoItems: [...state.todoItems]
+    }
   }
+  return state;
+}
+
+const reducer = (state, action) => {
+  switch (action.type) {
+    case 'ADD_ITEM':
+      return {
+        ...state,
+        todoItems: [...state.todoItems, {
+          ...action.item
+        }]
+      };
+    case 'COMPLETE_ITEM':
+      return markItemStateChange(true, action.id, state);
+    case 'UNDO_COMPLETE_ITEM':
+      return markItemStateChange(false, action.id, state);
+    case 'TODO_ITEMS':
+      return {
+        ...state,
+        todoItems: action.todoItems
+      }
+    default:
+      throw new Error('Unexpected action');
+  }
+};
+
+
+const App = () => {
+
+  const state = useReducer(reducer, initialState);
+  return (
+    <div className="App">
+    <TodoProvider value={state}> 
+      <ToDoHome />
+    </TodoProvider>
+    </div>
+  );
 }
 
 export default App;
